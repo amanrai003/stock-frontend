@@ -405,7 +405,36 @@ const Dashboard = () => {
       setDeleting(null);
     }
   };
-
+  const downloadImage = async () => {
+    try {
+      const response = await fetch(
+        `https://stock-backend-tl9t.onrender.com/api/stocks/trades/download_report_image/`,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      );
+  
+      if (!response.ok) throw new Error("Failed");
+  
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+  
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "portfolio_report.png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+  
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Image download failed");
+    }
+  };
+  
   // Simplified download function using stockService
   const handleDownloadImage = async () => {
     if (!selectedPortfolio) return;
@@ -741,7 +770,7 @@ const Dashboard = () => {
               ))}
             </div>
           )}
-
+          
           {selectedPortfolio && (
             <div className="portfolio-stocks-section">
               <h3 className="stocks-section-title">
@@ -761,6 +790,10 @@ const Dashboard = () => {
                   >
                     {downloading ? '⏳ Downloading...' : '📥 Download Image'}
                   </button>
+                  <button onClick={downloadImage}>
+                    Download Image
+                  </button>
+
                   <button 
                     onClick={() => {
                       setSelectedPortfolio(null);
