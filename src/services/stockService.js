@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { tokenService } from './authService';
 
-
+// MAke this setting according to work
 // const STOCK_API_BASE = 'http://127.0.0.1:8000';
 const STOCK_API_BASE = 'https://stock-backend-tl9t.onrender.com';
 
