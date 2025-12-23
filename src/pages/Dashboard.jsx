@@ -405,10 +405,15 @@ const Dashboard = () => {
       setDeleting(null);
     }
   };
+  const openReport = () => {
+    const url = `https://stock-backend-tl9t.onrender.com/api/stocks/trades/download_report/`;
+    window.open(url, "_blank");
+  };
+  
   const downloadImage = async () => {
     try {
       const response = await fetch(
-        `https://stock-backend-tl9t.onrender.com/api/stocks/trades/download_report_image/`,
+        `http://127.0.0.1:8000/api/stocks/trades/download_report_image/`,
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -782,17 +787,23 @@ const Dashboard = () => {
                   >
                     + Add Stock
                   </button>
-                  <button 
+                  {/* <button 
                     onClick={handleDownloadImage} // or use handleDownloadImageSimple
                     disabled={downloading}
                     className="btn-download-image"
                     title="Download as PNG Image"
                   >
                     {downloading ? '⏳ Downloading...' : '📥 Download Image'}
+                  </button> */}
+                  <button
+                  className="btn-download-image"
+                  onClick={openReport}>
+                    View Portfolio Report
                   </button>
-                  <button onClick={downloadImage}>
+
+                  {/* <button onClick={downloadImage}>
                     Download Image
-                  </button>
+                  </button> */}
 
                   <button 
                     onClick={() => {
