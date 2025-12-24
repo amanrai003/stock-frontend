@@ -19,18 +19,7 @@ const StockPortfolio = () => {
   const [newPortfolioName, setNewPortfolioName] = useState('');
 
   
-  const StockPortfolio = () => {
-    const portfolioRef = useRef(null);
-  
-    return (
-      <div className="stock-portfolio-container" ref={portfolioRef}>
-        {/* ... entire stock portfolio JSX ... */}
-  
-        {/* Download button */}
-        <DownloadReportButton targetRef={portfolioRef} />
-      </div>
-    );
-  };
+  // removed accidental nested component that caused render errors
   
   const handleDeleteStock = async (id) => {
     if (!id) return;
@@ -60,6 +49,7 @@ const StockPortfolio = () => {
     'symbol',
     'total_buy_qty',
     'buy_price',
+    'ltp',
     'total_sell_qty',
     'sell_price',
     'wk_52_high',
@@ -601,8 +591,8 @@ const StockPortfolio = () => {
                   </td>
                   <td>
                     <input
-                      type={field.includes('price') || field.includes('high') || field.includes('low') || field.includes('qty') ? 'number' : 'text'}
-                      step={field.includes('price') || field.includes('high') || field.includes('low') ? '0.01' : undefined}
+                      type={field.includes('price') || field.includes('high') || field.includes('low') || field.includes('qty') || field === 'ltp' ? 'number' : 'text'}
+                      step={field.includes('price') || field.includes('high') || field.includes('low') || field === 'ltp' ? '0.01' : undefined}
                       value={editingStock[field] || ''}
                       onChange={(e) => handleFieldChange(field, e.target.value)}
                       className="editable-input"
@@ -668,8 +658,8 @@ const StockPortfolio = () => {
                           <td>
                             {isEditing ? (
                               <input
-                                type={field.includes('price') || field.includes('high') || field.includes('low') ? 'number' : 'text'}
-                                step={field.includes('price') || field.includes('high') || field.includes('low') ? '0.01' : undefined}
+                                type={field.includes('price') || field.includes('high') || field.includes('low') || field === 'ltp' ? 'number' : 'text'}
+                                step={field.includes('price') || field.includes('high') || field.includes('low') || field === 'ltp' ? '0.01' : undefined}
                                 value={stockData[field] || ''}
                                 onChange={(e) => handleFieldChange(field, e.target.value)}
                                 className="editable-input"
@@ -679,7 +669,7 @@ const StockPortfolio = () => {
                               <span className="field-value">
                                 {field === 'symbol' || field === 'current_portfolio'
                                   ? stockData[field] || '-'
-                                  : field.includes('price') || field.includes('high') || field.includes('low')
+                                  : field.includes('price') || field.includes('high') || field.includes('low') || field === 'ltp'
                                   ? formatCurrency(stockData[field])
                                   : formatNumber(stockData[field])}
                               </span>

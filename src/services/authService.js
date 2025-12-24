@@ -6,6 +6,7 @@ import axios from 'axios';
 // MAke this setting according to 
 // const API_BASE_URL = 'http://127.0.0.1:8000/api/auth';
 const API_BASE_URL = 'https://stock-backend-tl9t.onrender.com/api/auth';
+
 // Option 2: Use Vite proxy (recommended for development - helps avoid CORS issues)
 // Uncomment the line below and comment out the line above to use the proxy
 // const API_BASE_URL = '/api/auth';

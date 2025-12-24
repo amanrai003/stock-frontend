@@ -29,6 +29,7 @@ const Dashboard = () => {
     sell_price: '',
     wk_52_high: '',
     wk_52_low: '',
+    ltp: '',
   });
   const [savingStock, setSavingStock] = useState(false);
   const [downloading, setDownloading] = useState(false); // Add this state
@@ -249,132 +250,141 @@ const Dashboard = () => {
 
   const handleEditStock = (stock) => {
     setStockFormData({
-      symbol: stock.symbol || '',
-      total_buy_qty: stock.total_buy_qty || '',
-      buy_price: stock.buy_price || '',
-      total_sell_qty: stock.total_sell_qty || '',
-      sell_price: stock.sell_price || '',
-      wk_52_high: stock.wk_52_high || '',
-      wk_52_low: stock.wk_52_low || '',
+        symbol: stock.symbol || '',
+        total_buy_qty: stock.total_buy_qty || '',
+        buy_price: stock.buy_price || '',
+        total_sell_qty: stock.total_sell_qty || '',
+        sell_price: stock.sell_price || '',
+        ltp: stock.ltp || '', // Add LTP field
+        wk_52_high: stock.wk_52_high || '',
+        wk_52_low: stock.wk_52_low || '',
     });
     setEditingStockId(stock.id);
     setShowStockForm(true);
-  };
+};
 
-  const handleAddNewStock = () => {
-    setStockFormData({
+const handleAddNewStock = () => {
+  setStockFormData({
       symbol: '',
       total_buy_qty: '',
       buy_price: '',
       total_sell_qty: '',
       sell_price: '',
+      ltp: '', // Add LTP field
       wk_52_high: '',
       wk_52_low: '',
-    });
-    setEditingStockId(null);
-    setShowStockForm(true);
-  };
+  });
+  setEditingStockId(null);
+  setShowStockForm(true);
+};
 
-  const handleCancelStockForm = () => {
-    setShowStockForm(false);
-    setEditingStockId(null);
-    setStockFormData({
+const handleCancelStockForm = () => {
+  setShowStockForm(false);
+  setEditingStockId(null);
+  setStockFormData({
       symbol: '',
       total_buy_qty: '',
       buy_price: '',
       total_sell_qty: '',
       sell_price: '',
+      ltp: '', // Add LTP field
       wk_52_high: '',
       wk_52_low: '',
-    });
-  };
+  });
+};
 
   const handleSaveStock = async (e) => {
     e.preventDefault();
     if (!selectedPortfolio) return;
 
     try {
-      setSavingStock(true);
-      setError('');
+        setSavingStock(true);
+        setError('');
 
-      const stockData = {
-        portfolio_id: selectedPortfolio.id,
-        symbol: stockFormData.symbol.trim().toUpperCase(),
-      };
+        const stockData = {
+            portfolio_id: selectedPortfolio.id,
+            symbol: stockFormData.symbol.trim().toUpperCase(),
+        };
 
-      const numericFields = ['total_buy_qty', 'buy_price', 'total_sell_qty', 'sell_price', 'wk_52_high', 'wk_52_low'];
-      numericFields.forEach(field => {
-        if (stockFormData[field] && stockFormData[field] !== '') {
-          const numValue = parseFloat(stockFormData[field]);
-          if (!isNaN(numValue)) {
-            if (field.includes('qty')) {
-              stockData[field] = parseInt(stockFormData[field], 10);
-            } else {
-              stockData[field] = numValue;
+        // Add 'ltp' to the numeric fields
+        const numericFields = ['total_buy_qty', 'buy_price', 'total_sell_qty', 'sell_price', 'ltp', 'wk_52_high', 'wk_52_low'];
+        numericFields.forEach(field => {
+            if (stockFormData[field] && stockFormData[field] !== '') {
+                const numValue = parseFloat(stockFormData[field]);
+                if (!isNaN(numValue)) {
+                    if (field.includes('qty')) {
+                        stockData[field] = parseInt(stockFormData[field], 10);
+                    } else {
+                        stockData[field] = numValue;
+                    }
+                }
             }
-          }
-        }
-      });
+        });
 
-      let response;
-      if (editingStockId) {
-        response = await stockService.updateStock(editingStockId, stockData);
-      } else {
-        response = await stockService.createStock(stockData);
-      }
-      
-      setStockFormData({
-        symbol: '',
-        total_buy_qty: '',
-        buy_price: '',
-        total_sell_qty: '',
-        sell_price: '',
-        wk_52_high: '',
-        wk_52_low: '',
-      });
-      setEditingStockId(null);
-      setShowStockForm(false);
-      
-      setLoadingStocks(true);
-      try {
-        const response = await stockService.getStocksByPortfolioId(selectedPortfolio.id);
-        let stocksData = [];
-        if (response && Array.isArray(response.data)) {
-          stocksData = response.data;
-        } else if (Array.isArray(response)) {
-          stocksData = response;
-        }
-        setPortfolioStocks(stocksData);
-      } catch (err) {
-        console.error('Error refreshing stocks:', err);
-      } finally {
-        setLoadingStocks(false);
-      }
-    } catch (err) {
-      console.error(`${editingStockId ? 'Update' : 'Create'} stock error:`, err);
-      
-      let errorMessage = `Failed to ${editingStockId ? 'update' : 'create'} stock.`;
-      if (err.response?.data) {
-        if (err.response.data.error) {
-          errorMessage = err.response.data.error;
-        } else if (err.response.data.detail) {
-          errorMessage = err.response.data.detail;
-        } else if (err.response.data.symbol) {
-          errorMessage = `Symbol: ${Array.isArray(err.response.data.symbol) ? err.response.data.symbol.join(', ') : err.response.data.symbol}`;
-        } else if (err.response.data.portfolio_id) {
-          errorMessage = `Portfolio: ${Array.isArray(err.response.data.portfolio_id) ? err.response.data.portfolio_id.join(', ') : err.response.data.portfolio_id}`;
+        let response;
+        if (editingStockId) {
+            response = await stockService.updateStock(editingStockId, stockData);
         } else {
-          errorMessage = JSON.stringify(err.response.data);
+            response = await stockService.createStock(stockData);
         }
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+        
+        // Reset form with LTP field
+        setStockFormData({
+            symbol: '',
+            total_buy_qty: '',
+            buy_price: '',
+            total_sell_qty: '',
+            sell_price: '',
+            ltp: '', // Reset LTP field
+            wk_52_high: '',
+            wk_52_low: '',
+        });
+        setEditingStockId(null);
+        setShowStockForm(false);
+        
+        // Refresh stocks list
+        setLoadingStocks(true);
+        try {
+            const response = await stockService.getStocksByPortfolioId(selectedPortfolio.id);
+            let stocksData = [];
+            if (response && Array.isArray(response.data)) {
+                stocksData = response.data;
+            } else if (Array.isArray(response)) {
+                stocksData = response;
+            }
+            setPortfolioStocks(stocksData);
+        } catch (err) {
+            console.error('Error refreshing stocks:', err);
+        } finally {
+            setLoadingStocks(false);
+        }
+    } catch (err) {
+        console.error(`${editingStockId ? 'Update' : 'Create'} stock error:`, err);
+        
+        let errorMessage = `Failed to ${editingStockId ? 'update' : 'create'} stock.`;
+        if (err.response?.data) {
+            if (err.response.data.error) {
+                errorMessage = err.response.data.error;
+            } else if (err.response.data.detail) {
+                errorMessage = err.response.data.detail;
+            } else if (err.response.data.symbol) {
+                errorMessage = `Symbol: ${Array.isArray(err.response.data.symbol) ? err.response.data.symbol.join(', ') : err.response.data.symbol}`;
+            } else if (err.response.data.portfolio_id) {
+                errorMessage = `Portfolio: ${Array.isArray(err.response.data.portfolio_id) ? err.response.data.portfolio_id.join(', ') : err.response.data.portfolio_id}`;
+            } else if (err.response.data.ltp) { // Add LTP validation error
+                errorMessage = `LTP: ${Array.isArray(err.response.data.ltp) ? err.response.data.ltp.join(', ') : err.response.data.ltp}`;
+            } else {
+                errorMessage = JSON.stringify(err.response.data);
+            }
+        } else if (err.message) {
+            errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
     } finally {
-      setSavingStock(false);
+        setSavingStock(false);
     }
-  };
+};
 
   const handleStockFieldChange = (field, value) => {
     setStockFormData({
@@ -872,6 +882,16 @@ const Dashboard = () => {
                         onChange={(e) => handleStockFieldChange('sell_price', e.target.value)}
                         placeholder="0.00"
                       />
+                    </div>
+                    <div className="stock-form-field">
+                        <label>LTP (Last Traded Price)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={stockFormData.ltp}
+                            onChange={(e) => handleStockFieldChange('ltp', e.target.value)}
+                            placeholder="0.00"
+                        />
                     </div>
                     <div className="stock-form-field">
                       <label>52 Week High</label>
