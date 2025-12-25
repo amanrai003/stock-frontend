@@ -209,7 +209,161 @@
 .portfolios-section {
   width: 100%;
 }
+/* Portfolio Form Styles */
+.portfolio-form-fields,
+.portfolio-edit-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+}
 
+.portfolio-form-field,
+.portfolio-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.portfolio-form-field label,
+.portfolio-edit-field label {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.portfolio-name-input,
+.portfolio-description-input,
+.portfolio-edit-input,
+.portfolio-edit-description {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.portfolio-description-input,
+.portfolio-edit-description {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+.portfolio-description-input::placeholder,
+.portfolio-edit-description::placeholder {
+    color: #999;
+}
+
+/* Portfolio Info Styles */
+.portfolio-description {
+    color: #666;
+    font-size: 14px;
+    margin: 8px 0;
+    line-height: 1.4;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.portfolio-item.selected .portfolio-description {
+    max-height: none;
+    -webkit-line-clamp: unset;
+}
+
+.portfolio-date {
+    color: #999;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Portfolio Edit Form Styles */
+.portfolio-edit-form {
+    width: 100%;
+}
+
+/* Portfolio Actions */
+.portfolio-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit-portfolio,
+.btn-delete-portfolio {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-edit-portfolio {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.btn-edit-portfolio:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-delete-portfolio {
+    background-color: #ff4444;
+    color: white;
+}
+
+.btn-delete-portfolio:hover {
+    background-color: #cc0000;
+}
+
+.btn-delete-portfolio:disabled {
+    background-color: #ff9999;
+    cursor: not-allowed;
+}
+
+/* Portfolio Edit Actions */
+.portfolio-edit-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.btn-cancel-edit,
+.btn-save-edit {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    font-size: 14px;
+}
+
+.btn-cancel-edit {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.btn-cancel-edit:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-save-edit {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-save-edit:hover {
+    background-color: #45a049;
+}
+
+.btn-save-edit:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
 .portfolios-header {
   display: flex;
   justify-content: space-between;

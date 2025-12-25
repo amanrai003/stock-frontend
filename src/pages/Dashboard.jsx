@@ -13,6 +13,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [newPortfolioDescription, setNewPortfolioDescription] = useState(''); // Add this
+ 
+  const [editingPortfolioDescription, setEditingPortfolioDescription] = useState(''); // Add this
   const [newPortfolioName, setNewPortfolioName] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
@@ -42,61 +45,71 @@ const Dashboard = () => {
   const handleEditPortfolio = (portfolio) => {
     setEditingPortfolioId(portfolio.id);
     setEditingPortfolioName(portfolio.name);
+    setEditingPortfolioDescription(portfolio.description || ''); // Add this
     setError('');
-  };
+};
   
-  const handleCancelEditPortfolio = () => {
-    setEditingPortfolioId(null);
-    setEditingPortfolioName('');
-    setError('');
-  };
+const handleCancelEditPortfolio = () => {
+  setEditingPortfolioId(null);
+  setEditingPortfolioName('');
+  setEditingPortfolioDescription(''); // Add this
+  setError('');
+};
   
-  const handleUpdatePortfolio = async (e) => {
-    e.preventDefault();
-    
-    if (!editingPortfolioName.trim()) {
+const handleUpdatePortfolio = async (e) => {
+  e.preventDefault();
+  
+  if (!editingPortfolioName.trim()) {
       setError('Portfolio name cannot be empty');
       return;
-    }
+  }
   
-    try {
+  try {
       setUpdatingPortfolio(true);
       setError('');
       
       await stockService.updatePortfolio(editingPortfolioId, {
-        name: editingPortfolioName.trim()
+          name: editingPortfolioName.trim(),
+          description: editingPortfolioDescription.trim() // Add this
       });
       
       // Update the portfolios list
       await fetchPortfolios();
       
-      // If the updated portfolio is currently selected, update its name
+      // If the updated portfolio is currently selected, update its name and description
       if (selectedPortfolio?.id === editingPortfolioId) {
-        setSelectedPortfolio(prev => ({
-          ...prev,
-          name: editingPortfolioName.trim()
-        }));
+          setSelectedPortfolio(prev => ({
+              ...prev,
+              name: editingPortfolioName.trim(),
+              description: editingPortfolioDescription.trim()
+          }));
       }
       
       // Reset edit state
       setEditingPortfolioId(null);
       setEditingPortfolioName('');
+      setEditingPortfolioDescription(''); // Add this
       
-    } catch (err) {
+  } catch (err) {
       console.error('Update portfolio error:', err);
       const errorMessage = err.response?.data?.error || 
                           err.response?.data?.name?.[0] || 
+                          err.response?.data?.description?.[0] || 
                           err.message || 
                           'Failed to update portfolio.';
       setError(errorMessage);
-    } finally {
+  } finally {
       setUpdatingPortfolio(false);
-    }
-  };
-  
-  const handlePortfolioNameChange = (e) => {
-    setEditingPortfolioName(e.target.value);
-  };
+  }
+};
+const handlePortfolioNameChange = (e) => {
+  setEditingPortfolioName(e.target.value);
+};
+
+// Add this new handler for description change
+const handlePortfolioDescriptionChange = (e) => {
+  setEditingPortfolioDescription(e.target.value);
+};
 
   const fetchPortfolios = async () => {
     try {
@@ -124,26 +137,33 @@ const Dashboard = () => {
   const handleCreatePortfolio = async (e) => {
     e.preventDefault();
     if (!newPortfolioName.trim()) {
-      setError('Portfolio name is required');
-      return;
+        setError('Portfolio name is required');
+        return;
     }
 
     try {
-      setSaving(true);
-      setError('');
-      await stockService.createPortfolio({ name: newPortfolioName.trim() });
-      setNewPortfolioName('');
-      setShowAddForm(false);
-      await fetchPortfolios();
+        setSaving(true);
+        setError('');
+        await stockService.createPortfolio({ 
+            name: newPortfolioName.trim(),
+            description: newPortfolioDescription.trim() // Add this
+        });
+        setNewPortfolioName('');
+        setNewPortfolioDescription(''); // Add this
+        setShowAddForm(false);
+        await fetchPortfolios();
     } catch (err) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.name?.[0] || err.message || 'Failed to create portfolio.';
-      setError(errorMessage);
-      console.error('Create portfolio error:', err);
+        const errorMessage = err.response?.data?.error || 
+                           err.response?.data?.name?.[0] || 
+                           err.response?.data?.description?.[0] || 
+                           err.message || 
+                           'Failed to create portfolio.';
+        setError(errorMessage);
+        console.error('Create portfolio error:', err);
     } finally {
-      setSaving(false);
+        setSaving(false);
     }
-  };
-
+};
   const handleDeletePortfolio = async (portfolio, e) => {
     e.stopPropagation();
     if (!window.confirm(`Are you sure you want to delete portfolio "${portfolio.name}"?`)) {
@@ -657,23 +677,38 @@ const handleCancelStockForm = () => {
           {error && <div className="error-message">{error}</div>}
 
           {showAddForm && (
-            <form onSubmit={handleCreatePortfolio} className="add-portfolio-form">
-              <input
-                type="text"
-                placeholder="Enter portfolio name"
-                value={newPortfolioName}
-                onChange={(e) => setNewPortfolioName(e.target.value)}
-                className="portfolio-name-input"
-                required
-              />
-              <button 
-                type="submit" 
-                disabled={saving || !newPortfolioName.trim()} 
-                className="btn-save-portfolio"
-              >
-                {saving ? 'Creating...' : 'Create Portfolio'}
-              </button>
-            </form>
+              <form onSubmit={handleCreatePortfolio} className="add-portfolio-form">
+                  <div className="portfolio-form-fields">
+                      <div className="portfolio-form-field">
+                          <label>Portfolio Name *</label>
+                          <input
+                              type="text"
+                              placeholder="Enter portfolio name"
+                              value={newPortfolioName}
+                              onChange={(e) => setNewPortfolioName(e.target.value)}
+                              className="portfolio-name-input"
+                              required
+                          />
+                      </div>
+                      <div className="portfolio-form-field">
+                          <label>Description</label>
+                          <textarea
+                              placeholder="Enter portfolio description (optional)"
+                              value={newPortfolioDescription}
+                              onChange={(e) => setNewPortfolioDescription(e.target.value)}
+                              className="portfolio-description-input"
+                              rows="3"
+                          />
+                      </div>
+                  </div>
+                  <button 
+                      type="submit" 
+                      disabled={saving || !newPortfolioName.trim()} 
+                      className="btn-save-portfolio"
+                  >
+                      {saving ? 'Creating...' : 'Create Portfolio'}
+                  </button>
+              </form>
           )}
           {loading ? (
   <div className="loading">Loading portfolios...</div>
@@ -688,67 +723,85 @@ const handleCancelStockForm = () => {
         onClick={() => handlePortfolioClick(portfolio)}
       >
         {editingPortfolioId === portfolio.id ? (
-          // Edit mode
-          <form onSubmit={handleUpdatePortfolio} className="portfolio-edit-form">
-            <input
-              type="text"
-              value={editingPortfolioName}
-              onChange={handlePortfolioNameChange}
-              className="portfolio-edit-input"
-              autoFocus
-              required
-            />
-            <div className="portfolio-edit-actions">
-              <button
+    // Edit mode
+    <form onSubmit={handleUpdatePortfolio} className="portfolio-edit-form">
+        <div className="portfolio-edit-fields">
+            <div className="portfolio-edit-field">
+                <label>Portfolio Name *</label>
+                <input
+                    type="text"
+                    value={editingPortfolioName}
+                    onChange={handlePortfolioNameChange}
+                    className="portfolio-edit-input"
+                    autoFocus
+                    required
+                />
+            </div>
+            <div className="portfolio-edit-field">
+                <label>Description</label>
+                <textarea
+                    value={editingPortfolioDescription}
+                    onChange={handlePortfolioDescriptionChange}
+                    className="portfolio-edit-description"
+                    rows="3"
+                />
+            </div>
+        </div>
+        <div className="portfolio-edit-actions">
+            <button
                 type="button"
                 onClick={handleCancelEditPortfolio}
                 className="btn-cancel-edit"
                 disabled={updatingPortfolio}
-              >
+            >
                 Cancel
-              </button>
-              <button
+            </button>
+            <button
                 type="submit"
                 disabled={updatingPortfolio || !editingPortfolioName.trim()}
                 className="btn-save-edit"
-              >
+            >
                 {updatingPortfolio ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </form>
-        ) : (
-          // View mode
-          <>
-            <div className="portfolio-info">
-              <h3 className="portfolio-name">{portfolio.name}</h3>
-              {portfolio.created_at && (
-                <span className="portfolio-date">
-                  Created: {new Date(portfolio.created_at).toLocaleDateString()}
-                </span>
-              )}
-            </div>
-            <div className="portfolio-actions">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEditPortfolio(portfolio);
-                }}
-                className="btn-edit-portfolio"
-                title="Edit portfolio name"
-              >
-                ✏️ Edit
-              </button>
-              <button
-                onClick={(e) => handleDeletePortfolio(portfolio, e)}
-                disabled={deleting === portfolio.id}
-                className="btn-delete-portfolio"
-                title="Delete portfolio"
-              >
-                {deleting === portfolio.id ? 'Deleting...' : '🗑️ Delete'}
-              </button>
-            </div>
-          </>
+            </button>
+        </div>
+    </form>
+) : (
+    // View mode
+    // View mode
+<>
+    <div className="portfolio-info">
+        <h3 className="portfolio-name">{portfolio.name}</h3>
+        {portfolio.description && (
+            <p className="portfolio-description">{portfolio.description}</p>
         )}
+        {portfolio.created_at && (
+            <span className="portfolio-date">
+                Created: {new Date(portfolio.created_at).toLocaleDateString()}
+            </span>
+        )}
+    </div>
+    <div className="portfolio-actions">
+        <button
+            onClick={(e) => {
+                e.stopPropagation();
+                handleEditPortfolio(portfolio);
+            }}
+            className="btn-edit-portfolio"
+            title="Edit portfolio"
+        >
+            ✏️ Edit
+        </button>
+        <button
+            onClick={(e) => handleDeletePortfolio(portfolio, e)}
+            disabled={deleting === portfolio.id}
+            className="btn-delete-portfolio"
+            title="Delete portfolio"
+        >
+            {deleting === portfolio.id ? 'Deleting...' : '🗑️ Delete'}
+        </button>
+    </div>
+</>
+)}
       </div>
     ))}
   </div>
