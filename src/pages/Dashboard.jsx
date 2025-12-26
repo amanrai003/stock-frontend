@@ -313,99 +313,100 @@ const handleCancelStockForm = () => {
   });
 };
 
-  const handleSaveStock = async (e) => {
-    e.preventDefault();
-    if (!selectedPortfolio) return;
+const handleSaveStock = async (e) => {
+  e.preventDefault();
+  if (!selectedPortfolio) return;
 
-    try {
-        setSavingStock(true);
-        setError('');
+  try {
+      setSavingStock(true);
+      setError('');
 
-        const stockData = {
-            portfolio_id: selectedPortfolio.id,
-            symbol: stockFormData.symbol.trim().toUpperCase(),
-        };
+      const stockData = {
+          portfolio: selectedPortfolio.id,  // Changed from portfolio_id to portfolio
+          symbol: stockFormData.symbol.trim().toUpperCase(),
+      };
 
-        // Add 'ltp' to the numeric fields
-        const numericFields = ['total_buy_qty', 'buy_price', 'total_sell_qty', 'sell_price', 'ltp', 'wk_52_high', 'wk_52_low'];
-        numericFields.forEach(field => {
-            if (stockFormData[field] && stockFormData[field] !== '') {
-                const numValue = parseFloat(stockFormData[field]);
-                if (!isNaN(numValue)) {
-                    if (field.includes('qty')) {
-                        stockData[field] = parseInt(stockFormData[field], 10);
-                    } else {
-                        stockData[field] = numValue;
-                    }
-                }
-            }
-        });
+      // Add 'ltp' to the numeric fields
+      const numericFields = ['total_buy_qty', 'buy_price', 'total_sell_qty', 'sell_price', 'ltp', 'wk_52_high', 'wk_52_low'];
+      numericFields.forEach(field => {
+          if (stockFormData[field] && stockFormData[field] !== '') {
+              const numValue = parseFloat(stockFormData[field]);
+              if (!isNaN(numValue)) {
+                  if (field.includes('qty')) {
+                      stockData[field] = parseInt(stockFormData[field], 10);
+                  } else {
+                      stockData[field] = numValue;
+                  }
+              }
+          }
+      });
 
-        let response;
-        if (editingStockId) {
-            response = await stockService.updateStock(editingStockId, stockData);
-        } else {
-            response = await stockService.createStock(stockData);
-        }
-        
-        // Reset form with LTP field
-        setStockFormData({
-            symbol: '',
-            total_buy_qty: '',
-            buy_price: '',
-            total_sell_qty: '',
-            sell_price: '',
-            ltp: '', // Reset LTP field
-            wk_52_high: '',
-            wk_52_low: '',
-        });
-        setEditingStockId(null);
-        setShowStockForm(false);
-        
-        // Refresh stocks list
-        setLoadingStocks(true);
-        try {
-            const response = await stockService.getStocksByPortfolioId(selectedPortfolio.id);
-            let stocksData = [];
-            if (response && Array.isArray(response.data)) {
-                stocksData = response.data;
-            } else if (Array.isArray(response)) {
-                stocksData = response;
-            }
-            setPortfolioStocks(stocksData);
-        } catch (err) {
-            console.error('Error refreshing stocks:', err);
-        } finally {
-            setLoadingStocks(false);
-        }
-    } catch (err) {
-        console.error(`${editingStockId ? 'Update' : 'Create'} stock error:`, err);
-        
-        let errorMessage = `Failed to ${editingStockId ? 'update' : 'create'} stock.`;
-        if (err.response?.data) {
-            if (err.response.data.error) {
-                errorMessage = err.response.data.error;
-            } else if (err.response.data.detail) {
-                errorMessage = err.response.data.detail;
-            } else if (err.response.data.symbol) {
-                errorMessage = `Symbol: ${Array.isArray(err.response.data.symbol) ? err.response.data.symbol.join(', ') : err.response.data.symbol}`;
-            } else if (err.response.data.portfolio_id) {
-                errorMessage = `Portfolio: ${Array.isArray(err.response.data.portfolio_id) ? err.response.data.portfolio_id.join(', ') : err.response.data.portfolio_id}`;
-            } else if (err.response.data.ltp) { // Add LTP validation error
-                errorMessage = `LTP: ${Array.isArray(err.response.data.ltp) ? err.response.data.ltp.join(', ') : err.response.data.ltp}`;
-            } else {
-                errorMessage = JSON.stringify(err.response.data);
-            }
-        } else if (err.message) {
-            errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
-    } finally {
-        setSavingStock(false);
-    }
+      let response;
+      if (editingStockId) {
+          // For update, also include portfolio
+          stockData.portfolio = selectedPortfolio.id;
+          response = await stockService.updateStock(editingStockId, stockData);
+      } else {
+          response = await stockService.createStock(stockData);
+      }
+      
+      // Reset form with LTP field
+      setStockFormData({
+          symbol: '',
+          total_buy_qty: '',
+          buy_price: '',
+          total_sell_qty: '',
+          sell_price: '',
+          ltp: '', // Reset LTP field
+          wk_52_high: '',
+          wk_52_low: '',
+      });
+      setEditingStockId(null);
+      setShowStockForm(false);
+      
+      // Refresh stocks list
+      setLoadingStocks(true);
+      try {
+          const response = await stockService.getStocksByPortfolioId(selectedPortfolio.id);
+          let stocksData = [];
+          if (response && Array.isArray(response.data)) {
+              stocksData = response.data;
+          } else if (Array.isArray(response)) {
+              stocksData = response;
+          }
+          setPortfolioStocks(stocksData);
+      } catch (err) {
+          console.error('Error refreshing stocks:', err);
+      } finally {
+          setLoadingStocks(false);
+      }
+  } catch (err) {
+      console.error(`${editingStockId ? 'Update' : 'Create'} stock error:`, err);
+      
+      let errorMessage = `Failed to ${editingStockId ? 'update' : 'create'} stock.`;
+      if (err.response?.data) {
+          if (err.response.data.error) {
+              errorMessage = err.response.data.error;
+          } else if (err.response.data.detail) {
+              errorMessage = err.response.data.detail;
+          } else if (err.response.data.symbol) {
+              errorMessage = `Symbol: ${Array.isArray(err.response.data.symbol) ? err.response.data.symbol.join(', ') : err.response.data.symbol}`;
+          } else if (err.response.data.portfolio) {
+              errorMessage = `Portfolio: ${Array.isArray(err.response.data.portfolio) ? err.response.data.portfolio.join(', ') : err.response.data.portfolio}`;
+          } else if (err.response.data.ltp) { // Add LTP validation error
+              errorMessage = `LTP: ${Array.isArray(err.response.data.ltp) ? err.response.data.ltp.join(', ') : err.response.data.ltp}`;
+          } else {
+              errorMessage = JSON.stringify(err.response.data);
+          }
+      } else if (err.message) {
+          errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+  } finally {
+      setSavingStock(false);
+  }
 };
-
   const handleStockFieldChange = (field, value) => {
     setStockFormData({
       ...stockFormData,
@@ -436,9 +437,16 @@ const handleCancelStockForm = () => {
     }
   };
   const openReport = () => {
-    const url = `https://stock-backend-tl9t.onrender.com/api/stocks/trades/download_report/`;
-    window.open(url, "_blank");
-  };
+    if (!selectedPortfolio) {
+        // If no portfolio is selected, open report for all portfolios
+        const url = `https://stock-backend-tl9t.onrender.com/api/stocks/trades/download_report/`;
+        window.open(url, "_blank");
+    } else {
+        // Open report for the selected portfolio
+        const url = `https://stock-backend-tl9t.onrender.com/api/stocks/trades/download_report/?portfolio_id=${selectedPortfolio.id}`;
+        window.open(url, "_blank");
+    }
+};
   
   const downloadImage = async () => {
     try {

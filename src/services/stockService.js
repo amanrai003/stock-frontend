@@ -206,3 +206,32 @@ downloadImage: async (portfolioId) => {
     return res.data;
   },
 };
+
+// In stockService.js
+class StockService {
+    // ... existing methods ...
+    
+    async createStock(stockData) {
+        try {
+            const response = await axios.post(`${this.baseUrl}/stocks/trades/`, stockData, {
+                headers: this.headers
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error creating stock:', error);
+            throw error;
+        }
+    }
+    
+    async updateStock(stockId, stockData) {
+        try {
+            const response = await axios.put(`${this.baseUrl}/stocks/trades/${stockId}/`, stockData, {
+                headers: this.headers
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating stock:', error);
+            throw error;
+        }
+    }
+}
